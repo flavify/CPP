@@ -1,0 +1,13 @@
+#include <algorithm>
+#include <exception>
+#include <iterator>
+
+template <typename T>
+
+int easyfind(T &container, int value) {
+  auto it = std::find(container.begin(), container.end(), value);
+  if (it == container.end()) {
+    throw std::runtime_error("Value not found");
+  }
+  return *it;
+}
