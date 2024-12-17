@@ -18,6 +18,7 @@ all 		  : $(NAME)
 
 $(NAME) 	: $(OBJ)
 	@$(CC) $(FLAGS) $(OBJ) -o $(NAME)
+	@python3 anim.py
 
 %.o 		  : %.cpp
 	@$(CC) $(FLAGS) -c $< -o $@
