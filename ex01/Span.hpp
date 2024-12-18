@@ -1,16 +1,21 @@
+#pragma once
+
 #include <vector>
 #include <algorithm>
-#include <optional>
 #include <stdexcept>
+#include <limits>
 
 class Span {
-private:
+ private:
   std::vector<int> numbers;
   unsigned int maxSize;
 
-public:
+ public:
   explicit Span(unsigned int n);
   void addNumber(int number);
-  std::optional<int> shortestSpan() const;
-  std::optional<int> longestSpan() const;
+
+  template <typename InputIterator>
+  void addNumbers(InputIterator begin, InputIterator end);
+  int shortestSpan() const;
+  int longestSpan() const;
 };
