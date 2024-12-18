@@ -3,7 +3,6 @@
 #include <iterator>
 
 template <typename T>
-
 int easyfind(T &container, int value) {
   auto it = std::find(container.begin(), container.end(), value);
   if (it == container.end()) {
