@@ -29,6 +29,14 @@ void testMutantStack() {
     ++it;
   }
 
+  std::cout << "MutantStack - Reverse iteration:" << std::endl;
+  MutantStack<int>::reverse_iterator rit = mstack.rbegin();
+  MutantStack<int>::reverse_iterator rite = mstack.rend();
+  while (rit != rite) {
+    std::cout << *rit << std::endl;
+    ++rit;
+  }
+
   std::stack<int> s(mstack);  // Copy to standard stack
   std::cout << "MutantStack - Copied stack size: " << s.size() << std::endl;
 }
@@ -58,6 +66,14 @@ void testList() {
   while (it != ite) {
     std::cout << *it << std::endl;
     ++it;
+  }
+
+  std::cout << "List - Reverse iteration:" << std::endl;
+  std::list<int>::reverse_iterator rit = lst.rbegin();
+  std::list<int>::reverse_iterator rite = lst.rend();
+  while (rit != rite) {
+    std::cout << *rit << std::endl;
+    ++rit;
   }
 
   std::list<int> s(lst);
