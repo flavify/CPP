@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
+#include <utility> // for std::pair
 
 template <typename Container>
 class PmergeMe {
@@ -19,4 +20,9 @@ class PmergeMe {
 
 	private:
 		Container _input;
+
+		PairList makePairs() const;
+		void displayPairs(const PairList &pairs) const;
 };
+
+#include "PmergeMe.tpp"
