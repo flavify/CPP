@@ -51,7 +51,7 @@ int main() {
     Span bigSpan(8);
     bigSpan.addNumbers(moreNumbers.begin(), moreNumbers.end());
     bigSpan.addNumber(10);
-    bigSpan.addNumber(20);
+    bigSpan.addNumber(-20);
     bigSpan.addNumber(40);
     bigSpan.addNumber(50);
     bigSpan.addNumber(60);

@@ -1,6 +1,11 @@
 #include "Span.hpp"
 
-Span::Span(unsigned int n) : maxSize(n) {}
+Span::Span(int n) {
+  if (n <= 0) {
+    throw std::invalid_argument("Span size must be greater than 0.");
+  }
+  maxSize = static_cast<unsigned int>(n);
+}
 
 Span::Span(const Span& other) {*this = other;}
 
