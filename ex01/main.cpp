@@ -1,6 +1,7 @@
 #include "Span.hpp"
 #include <iostream>
 #include <vector>
+#include <deque>
 
 #define RESET   "\033[0m"
 #define BLUE    "\033[1;34m"
@@ -55,6 +56,14 @@ int main() {
     bigSpan.addNumber(50);
     bigSpan.addNumber(60);
     printSpanResults(bigSpan);
+
+    // printHeader("Testing with 10000 Numbers");
+    // Span humongousSpan(10000);
+    // std::deque<int> d(10000);
+    // for (int i = 0; i < int(d.size()); ++i)
+    //     d[i] = rand() % 100;
+    // humongousSpan.addNumbers(d.begin(), d.end());
+    // printSpanResults(humongousSpan);
 
     std::cout << "\nAdding another number to exceed capacity...\n";
     bigSpan.addNumber(33);
