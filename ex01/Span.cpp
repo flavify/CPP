@@ -1,16 +1,23 @@
 #include "Span.hpp"
 
-// Constructor
 Span::Span(unsigned int n) : maxSize(n) {}
 
-// Add a single number
+Span::Span(const Span& other) {*this = other;}
+
+Span& Span::operator=(const Span& other) {
+  if (this != &other) {
+    numbers = other.numbers;
+    maxSize = other.maxSize;
+  }
+  return *this;
+}
+
 void Span::addNumber(int number) {
   if (numbers.size() >= maxSize)
     throw std::overflow_error("Span is full, cannot add more numbers.");
   numbers.push_back(number);
 }
 
-// Calculate the shortest span
 int Span::shortestSpan() const {
   if (numbers.size() < 2)
     throw std::logic_error("Not enough numbers to calculate the shortest span.");
@@ -26,11 +33,14 @@ int Span::shortestSpan() const {
   return minSpan;
 }
 
-// Calculate the longest span
 int Span::longestSpan() const {
   if (numbers.size() < 2)
     throw std::logic_error("Not enough numbers to calculate the longest span.");
   
   auto [minIt, maxIt] = std::minmax_element(numbers.begin(), numbers.end());
   return *maxIt - *minIt;
+}
+
+const std::vector<int>& Span::getNumbers() const {
+  return numbers;
 }

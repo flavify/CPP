@@ -12,8 +12,11 @@ class Span {
 
  public:
   explicit Span(unsigned int n);
-  void addNumber(int number);
+  Span(const Span& other);
+  Span& operator=(const Span& other);
+  ~Span() = default;
 
+  void addNumber(int number);
   template <typename InputIterator>
   void addNumbers(InputIterator begin, InputIterator end) {
     if (numbers.size() + std::distance(begin, end) > maxSize)
@@ -23,4 +26,6 @@ class Span {
 
   int shortestSpan() const;
   int longestSpan() const;
+
+  const std::vector<int>& getNumbers() const;
 };
