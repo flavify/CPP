@@ -3,8 +3,12 @@
 #include <vector>
 #include <list>
 
+#define PINK "\033[38;2;255;182;193m"
+#define RESET "\033[0m"
+
+
 void printHeader(const std::string &title) {
-  std::cout << "\n=== " << title << " ===" << std::endl;
+  std::cout << "\n===> "<< PINK << title << RESET << " <===" << std::endl;
 }
 
 void printSuccess(int value) {
