@@ -10,14 +10,6 @@ void Span::addNumber(int number) {
   numbers.push_back(number);
 }
 
-// Add a range of numbers
-template <typename InputIterator>
-void Span::addNumbers(InputIterator begin, InputIterator end) {
-  if (numbers.size() + std::distance(begin, end) > maxSize)
-    throw std::overflow_error("Adding these numbers would exceed the Span's capacity.");
-  numbers.insert(numbers.end(), begin, end);
-}
-
 // Calculate the shortest span
 int Span::shortestSpan() const {
   if (numbers.size() < 2)
