@@ -3,13 +3,18 @@
 template <typename Container>
 PmergeMe<Container>::PmergeMe(int argc, char **argv) {
     if (argc < 2) {
-        throw std::invalid_argument("Error: At least one argument is required.");
+        throw std::invalid_argument("Error");
     }
 
     for (int i = 1; i < argc; ++i) {
-        int num = std::stoi(argv[i]);
+        int num;
+        try {
+            num = std::stoi(argv[i]);
+        } catch (...) {
+            throw std::invalid_argument("Error");
+        }
         if (num < 0) {
-            throw std::invalid_argument("Error: Only positive integers are allowed.");
+            throw std::invalid_argument("Error");
         }
         _input.push_back(num);
     }
@@ -17,15 +22,17 @@ PmergeMe<Container>::PmergeMe(int argc, char **argv) {
 
 template <typename Container>
 void PmergeMe<Container>::execute() {
-    std::cout << "Input: ";
+    // Print the unsorted sequence:
+    std::cout << "Before: ";
     for (const auto &value : _input) {
         std::cout << value << " ";
     }
     std::cout << std::endl;
 
+
     // Step 1: Generate pairs
     PairList pairs = makePairs();
-    displayPairs(pairs);
+    // displayPairs(pairs);
 
     // Step 2: Extract larger and smaller elements
     auto [largerElements, smallerElements] = extractElements(pairs);
@@ -42,7 +49,8 @@ void PmergeMe<Container>::execute() {
         sortedMainChain.insert(it, _straggler);
     }
 
-    std::cout << "Fully sorted sequence: ";
+    // Display the fully sorted sequence
+    std::cout << "After: ";
     for (const auto &value : sortedMainChain) {
         std::cout << value << " ";
     }
