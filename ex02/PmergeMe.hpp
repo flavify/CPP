@@ -22,16 +22,14 @@ class PmergeMe {
 	private:
 		Container _input;
 		ValueType _straggler;
-		bool _hasStraggler;
+		bool 			_hasStraggler = false;
 
 		PairList makePairs();
 		void normalizePairs(PairList &pairs);
-
-		std::pair<Container, Container> extractElements(const PairList &pairs);
 		Container sortLargerElements(PairList &pairs);
 
+		std::pair<Container, Container> extractElements(const PairList &pairs);
 		void binaryMerge(Container &mainChain, const Container &smallerElements);
-
 		std::vector<size_t> generateJacobsthalSequence(size_t size);
 };
 

@@ -3,20 +3,25 @@
 template <typename Container>
 PmergeMe<Container>::PmergeMe(int argc, char **argv) {
     if (argc < 2) {
-        throw std::invalid_argument("Error");
+        throw std::invalid_argument("Error: No input provided.");
     }
 
     for (int i = 1; i < argc; ++i) {
-        int num;
+        int nb;
         try {
-            num = std::stoi(argv[i]);
+            nb = std::stoi(std::string(argv[i]));
         } catch (...) {
-            throw std::invalid_argument("Error");
+            throw std::invalid_argument("Error: Non-integer input encountered.");
         }
-        if (num < 0) {
-            throw std::invalid_argument("Error");
+        if (nb < 0) {
+            throw std::invalid_argument("Error: Negative number encountered.");
         }
-        _input.push_back(num);
+        _input.push_back(static_cast<ValueType>(nb));
+    }
+
+    _hasStraggler = (_input.size() % 2 != 0);
+    if (_hasStraggler) {
+        _straggler = _input.back();
     }
 }
 
