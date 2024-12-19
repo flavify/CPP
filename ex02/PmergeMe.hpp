@@ -5,14 +5,15 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
-#include <utility> // for std::pair
+#include <utility>
+#include <stdexcept>
 
 template <typename Container>
 class PmergeMe {
 	public:
-		typedef typename Container::value_type ValueType; // Type of the elements in the container
-		typedef std::pair<ValueType, ValueType> PairType; // Pair of elements
-		typedef std::vector<PairType> PairList; // List of pairs
+		using ValueType = typename Container::value_type;
+		using PairType = std::pair<ValueType, ValueType>;
+		using PairList = std::vector<PairType>;
 
 		PmergeMe(int argc, char **argv);
 
