@@ -20,9 +20,11 @@ class PmergeMe {
 
 	private:
 		Container _input;
+		ValueType _straggler;
+		bool _hasStraggler;
 
-		PairList makePairs() const;
-		void displayPairs(const PairList &pairs) const;
+		PairList makePairs();
+		void displayPairs(const PairList &pairs);
 };
 
 #include "PmergeMe.tpp"

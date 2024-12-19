@@ -30,26 +30,29 @@ void PmergeMe<Container>::execute() {
 
 template <typename Container>
 typename PmergeMe<Container>::PairList
-PmergeMe<Container>::makePairs() const {
+PmergeMe<Container>::makePairs() {
 	PairList pairs;
 
 	for (size_t i = 0; i + 1 < _input.size(); i += 2) {
 		pairs.push_back(PairType(_input[i], _input[i + 1]));
 	}
 
-    // Handle odd-sized container (last element paired with itself)
 	if (_input.size() % 2 != 0) {
-        pairs.push_back(PairType(_input.back(), _input.back())); 
-    }
+		_straggler = _input.back();
+	}
 
-    return pairs;
+	_hasStraggler = _input.size() % 2 != 0;
+  return pairs;
 }
 
 template <typename Container>
-void PmergeMe<Container>::displayPairs(const PairList &pairs) const {
-    std::cout << "Pairs: ";
-    for (const auto &pair : pairs) {
-        std::cout << "(" << pair.first << ", " << pair.second << ") ";
-    }
-    std::cout << std::endl;
+void PmergeMe<Container>::displayPairs(const PairList &pairs) {
+  std::cout << "Pairs: ";
+  for (const auto &pair : pairs) {
+    std::cout << "(" << pair.first << ", " << pair.second << ") ";
+  }
+	std::cout << std::endl;
+	if(_hasStraggler == true) {
+		std::cout << "Straggler: " << _straggler << std::endl;
+	}
 }
