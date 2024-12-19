@@ -24,6 +24,15 @@ class PmergeMe {
 		bool _hasStraggler;
 
 		PairList makePairs();
+		void normalizePairs(PairList &pairs);
+
+		std::pair<Container, Container> extractElements(const PairList &pairs);
+		Container sortLargerElements(PairList &pairs);
+
+		void binaryMerge(Container &mainChain, const Container &smallerElements);
+
+		std::vector<size_t> generateJacobsthalSequence(size_t size);
+
 		void displayPairs(const PairList &pairs);
 };
 
