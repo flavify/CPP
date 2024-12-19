@@ -16,5 +16,5 @@ class RPN {
 
   	bool isNumber(const std::string &token);
   	bool isOperator(const std::string &token);
-		int applyOperator(int left, int right, char op)
+		int applyOperator(int left, int right, char op);
 };

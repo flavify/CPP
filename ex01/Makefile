@@ -1,7 +1,7 @@
-NAME		  :=	out 
+NAME		  :=	RPN
 CC			  :=	c++
 FLAGS		  :=	-Wall -Wextra -Werror -std=c++17
-SRC			  :=	main.cpp
+SRC			  :=	main.cpp RPN.cpp
 OBJ			  :=	$(SRC:.cpp=.o)
 
 # Colors
