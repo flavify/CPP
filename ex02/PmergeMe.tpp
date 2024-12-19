@@ -203,15 +203,3 @@ std::vector<size_t> PmergeMe<Container>::generateJacobsthalSequence(size_t size)
 
     return jacobsthal;
 }
-
-template <typename Container>
-void PmergeMe<Container>::displayPairs(const PairList &pairs) {
-    std::cout << "Pairs: ";
-    for (const auto &pair : pairs) {
-        std::cout << "(" << pair.first << ", " << pair.second << ") ";
-    }
-    std::cout << std::endl;
-    if (_hasStraggler == true) {
-        std::cout << "Straggler: " << _straggler << std::endl;
-    }
-}

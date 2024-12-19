@@ -33,8 +33,6 @@ class PmergeMe {
 		void binaryMerge(Container &mainChain, const Container &smallerElements);
 
 		std::vector<size_t> generateJacobsthalSequence(size_t size);
-
-		void displayPairs(const PairList &pairs);
 };
 
 #include "PmergeMe.tpp"
