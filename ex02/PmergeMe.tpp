@@ -1,207 +1,190 @@
 #include "PmergeMe.hpp"
+#include <stdexcept>
+#include <iterator>
+#include <numeric>
 
 template <typename Container>
 PmergeMe<Container>::PmergeMe(int argc, char **argv) {
-    if (argc < 2) {
-        throw std::invalid_argument("Error: No input provided.");
-    }
+  if (argc < 2) {
+    throw std::invalid_argument("Error: No input provided.");
+  }
 
-    for (int i = 1; i < argc; ++i) {
-        int nb;
-        try {
-            nb = std::stoi(std::string(argv[i]));
-        } catch (...) {
-            throw std::invalid_argument("Error: Non-integer input encountered.");
-        }
-        if (nb < 0) {
-            throw std::invalid_argument("Error: Negative number encountered.");
-        }
-        _input.push_back(static_cast<ValueType>(nb));
+  for (int i = 1; i < argc; ++i) {
+    try {
+      int nb = std::stoi(argv[i]);
+      if (nb < 0) {
+        throw std::invalid_argument("Error: Negative number encountered.");
+      }
+      _input.push_back(static_cast<ValueType>(nb));
+    } catch (...) {
+      throw std::invalid_argument("Error: Non-integer input encountered.");
     }
+  }
 
-    _hasStraggler = (_input.size() % 2 != 0);
-    if (_hasStraggler) {
-        _straggler = _input.back();
-    }
+  _hasStraggler = (_input.size() % 2 != 0);
+  if (_hasStraggler) {
+    _straggler = _input.back();
+  }
 }
 
+// Execute
 template <typename Container>
 void PmergeMe<Container>::execute() {
-    // Print the unsorted sequence:
-    std::cout << "Before: ";
-    for (typename Container::const_iterator it = _input.begin(); 
-																				it != _input.end(); ++it) {
-        std::cout << *it << " ";
-    }
-    std::cout << '\n';
+  std::cout << "Before: ";
+  for (const auto &value : _input) {
+    std::cout << value << " ";
+  }
+  std::cout << '\n';
 
-    PairList pairs = makePairs();
+  auto pairs = makePairs();
+  auto [largerElements, smallerElements] = extractElements(pairs);
+  auto mainChain = sortLargerElements(pairs);
 
-    std::pair<Container, Container> topLevel = extractElements(pairs);
-    // Container &largerElements = topLevel.first;
-    Container &smallerElements = topLevel.second;
+  mergeWithSmallerElements(mainChain, smallerElements);
 
-    Container mainChain = sortLargerElements(pairs);
+  if (_hasStraggler) {
+    auto it = std::lower_bound(mainChain.begin(), mainChain.end(), _straggler);
+    mainChain.insert(it, _straggler);
+  }
 
-    mergeWithSmallerElements(mainChain, smallerElements);
-
-    if (_hasStraggler) {
-        typename Container::iterator it = std::lower_bound(mainChain.begin(), mainChain.end(), _straggler);
-        mainChain.insert(it, _straggler);
-    }
-
-    std::cout << "After: ";
-    for (typename Container::const_iterator it = mainChain.begin(); it != mainChain.end(); ++it) {
-        std::cout << *it << " ";
-    }
-    std::cout << '\n';
+  std::cout << "After: ";
+  for (const auto &value : mainChain) {
+    std::cout << value << " ";
+  }
+  std::cout << '\n';
 }
 
+// Make Pairs
 template <typename Container>
-void PmergeMe<Container>::mergeWithSmallerElements(Container &mainChain, const Container &smallerElements) {
-    if (!smallerElements.empty()) {
-        binaryMerge(mainChain, smallerElements);
-    }
+auto PmergeMe<Container>::makePairs() -> PairList {
+  PairList pairs;
+  size_t count = _hasStraggler ? _input.size() - 1 : _input.size();
+
+  for (size_t i = 0; i < count; i += 2) {
+    pairs.emplace_back(_input[i], _input[i + 1]);
+  }
+
+  normalizePairs(pairs);
+  return pairs;
 }
 
+// Normalize Pairs
 template <typename Container>
-typename PmergeMe<Container>::PairList
-PmergeMe<Container>::makePairs() {
-  auto pairs = PairList();
-  const size_t count = _hasStraggler ? 
-					_input.size() - 1 : _input.size();
-	
-	for (size_t i = 0; i + 1 < count; i += 2) {
-    	pairs.emplace_back(_input[i], _input[i + 1]);
-	}
-    normalizePairs(pairs);
-    return pairs;
-}
-
-template <typename Container>
-void PmergeMe<Container>::normalizePairs(PairList &pairs){
-    for (auto &pair : pairs) {
-        if (pair.first < pair.second) {
-            std::swap(pair.first, pair.second);
-        }
+void PmergeMe<Container>::normalizePairs(PairList &pairs) {
+  for (auto &pair : pairs) {
+    if (pair.first < pair.second) {
+      std::swap(pair.first, pair.second);
     }
+  }
 }
 
+// Extract Elements
 template <typename Container>
-std::pair<Container, Container>
-PmergeMe<Container>::extractElements(const PairList &pairs) {
-    Container largerElements;
-    Container smallerElements;
+auto PmergeMe<Container>::extractElements(const PairList &pairs)
+    -> std::pair<Container, Container> {
+  Container largerElements;
+  Container smallerElements;
 
-    for (const auto &pair : pairs) {
-        largerElements.push_back(pair.first);   // Larger element
-        smallerElements.push_back(pair.second); // Smaller element
-    }
+  for (const auto &[first, second] : pairs) {
+    largerElements.push_back(first);
+    smallerElements.push_back(second);
+  }
 
-    return std::make_pair(largerElements, smallerElements);
+  return {std::move(largerElements), std::move(smallerElements)};
 }
 
+// Sort Larger Elements
 template <typename Container>
 Container PmergeMe<Container>::sortLargerElements(PairList &pairs) {
-    if (pairs.size() <= 1) {
-        // Extract the larger element directly
-        Container sortedLargerElements;
-        for (const auto &pair : pairs) {
-            sortedLargerElements.push_back(pair.first);
-        }
-        return sortedLargerElements;
+  if (pairs.size() <= 1) {
+    Container sorted;
+    for (const auto &[first, _] : pairs) {
+      sorted.push_back(first);
     }
+    return sorted;
+  }
 
-    // Extract larger elements for this recursion level
-    Container largerElements;
-    for (const auto &pair : pairs) {
-        largerElements.push_back(pair.first);
+  Container largerElements;
+  for (const auto &[first, _] : pairs) {
+    largerElements.push_back(first);
+  }
+
+  bool hasLocalStraggler = largerElements.size() % 2 != 0;
+  ValueType localStraggler{};
+  if (hasLocalStraggler) {
+    localStraggler = largerElements.back();
+    largerElements.pop_back();
+  }
+
+  PairList nextLevelPairs;
+  for (size_t i = 0; i + 1 < largerElements.size(); i += 2) {
+    if (largerElements[i] < largerElements[i + 1]) {
+      std::swap(largerElements[i], largerElements[i + 1]);
     }
+    nextLevelPairs.emplace_back(largerElements[i], largerElements[i + 1]);
+  }
 
-    // Handle local straggler
-    PairList largerPairs;
-    ValueType localStraggler = 0;
-    bool hasLocalStraggler = (largerElements.size() % 2 != 0);
-    if (hasLocalStraggler) {
-        localStraggler = largerElements.back();
-        largerElements.pop_back();
-    }
+  auto [levelLargerElems, levelSmallerElems] = extractElements(nextLevelPairs);
+  auto sortedChain = sortLargerElements(nextLevelPairs);
 
-    // Create next-level pairs
-    for (size_t i = 0; i + 1 < largerElements.size(); i += 2) {
-        ValueType first = largerElements[i];
-        ValueType second = largerElements[i + 1];
-        if (first < second) {
-            std::swap(first, second);
-        }
-        largerPairs.push_back(PairType(first, second));
-    }
+  if (hasLocalStraggler) {
+    auto it = std::lower_bound(sortedChain.begin(), sortedChain.end(), localStraggler);
+    sortedChain.insert(it, localStraggler);
+  }
 
-    // Extract the smaller elements from these new pairs before recursion
-    // This gives us the smaller elements at the current recursion level
-    auto [levelLargerElems, levelSmallerElems] = extractElements(largerPairs);
-
-    // Recursively sort the larger pairs (this returns a sorted chain of their larger elements)
-    Container sortedLargerElements = sortLargerElements(largerPairs);
-
-    // Insert the local straggler if present
-    if (hasLocalStraggler) {
-        auto it = std::lower_bound(sortedLargerElements.begin(), sortedLargerElements.end(), localStraggler);
-        sortedLargerElements.insert(it, localStraggler);
-    }
-
-    // Now, we must re-insert the smaller elements from this recursion level
-    // just like we do at the top level
-    if (!levelSmallerElems.empty()) {
-        binaryMerge(sortedLargerElements, levelSmallerElems);
-    }
-
-    return sortedLargerElements;
+  mergeWithSmallerElements(sortedChain, levelSmallerElems);
+  return sortedChain;
 }
 
+// Merge with Smaller Elements
+template <typename Container>
+void PmergeMe<Container>::mergeWithSmallerElements(Container &mainChain,
+                                                   const Container &smallerElements) {
+  if (!smallerElements.empty()) {
+    binaryMerge(mainChain, smallerElements);
+  }
+}
 
+// Binary Merge
 template <typename Container>
 void PmergeMe<Container>::binaryMerge(Container &mainChain, const Container &smallerElements) {
-    // Generate the Jacobsthal sequence
-    std::vector<size_t> jacobsthal = generateJacobsthalSequence(smallerElements.size());
+  auto jacobsthal = generateJacobsthalSequence(smallerElements.size());
 
-    // Ensure we have a sentinel at the end to handle the last block of elements
-    if (jacobsthal.empty() || jacobsthal.back() < smallerElements.size()) {
-        jacobsthal.push_back(smallerElements.size());
+  if (jacobsthal.empty() || jacobsthal.back() < smallerElements.size()) {
+    jacobsthal.push_back(smallerElements.size());
+  }
+
+  for (size_t idx = 1; idx < jacobsthal.size(); ++idx) {
+    size_t start = jacobsthal[idx - 1];
+    size_t end = jacobsthal[idx];
+
+    for (size_t i = end; i > start; --i) {
+      auto elemIndex = i - 1;
+      if (elemIndex < smallerElements.size()) {
+        auto it = std::lower_bound(mainChain.begin(), mainChain.end(),
+                                   smallerElements[elemIndex]);
+        mainChain.insert(it, smallerElements[elemIndex]);
+      }
     }
-
-    // Insert elements in blocks determined by Jacobsthal indices
-    for (size_t idx = 1; idx < jacobsthal.size(); ++idx) {
-        size_t start = jacobsthal[idx-1];
-        size_t end = jacobsthal[idx];
-
-        // Insert elements from [start, end) in reverse order
-        for (size_t i = end; i > start; --i) {
-            size_t elemIndex = i - 1;
-            if (elemIndex < smallerElements.size()) {
-                auto it = std::lower_bound(mainChain.begin(), mainChain.end(), smallerElements[elemIndex]);
-                mainChain.insert(it, smallerElements[elemIndex]);
-            }
-        }
-    }
+  }
 }
 
+// Generate Jacobsthal Sequence
 template <typename Container>
 std::vector<size_t> PmergeMe<Container>::generateJacobsthalSequence(size_t size) {
-    std::vector<size_t> jacobsthal;
-    if (size == 0) return jacobsthal;
+  std::vector<size_t> jacobsthal;
+  if (size == 0) return jacobsthal;
 
-    jacobsthal.push_back(0); // J(0)
-    if (size == 1) return jacobsthal;
+  jacobsthal.push_back(0);
+  if (size == 1) return jacobsthal;
 
-    jacobsthal.push_back(1); // J(1)
+  jacobsthal.push_back(1);
+  while (jacobsthal.back() < size) {
+    size_t n = jacobsthal.size();
+    size_t next = jacobsthal[n - 1] + 2 * jacobsthal[n - 2];
+    if (next >= size) break;
+    jacobsthal.push_back(next);
+  }
 
-    while (jacobsthal.back() < size) {
-        size_t n = jacobsthal.size();
-        size_t next = jacobsthal[n - 1] + 2 * jacobsthal[n - 2];
-        if (next >= size) break;
-        jacobsthal.push_back(next);
-    }
-
-    return jacobsthal;
+  return jacobsthal;
 }
