@@ -1,6 +1,10 @@
 #pragma once
 
 #include <iostream>
+#include <stack>
+#include <sstream>
+#include <stdexcept>
+#include <cctype>
 
 class RPN {
 	public:
@@ -12,4 +16,5 @@ class RPN {
 
   	bool isNumber(const std::string &token);
   	bool isOperator(const std::string &token);
+		int applyOperator(int left, int right, char op)
 };
