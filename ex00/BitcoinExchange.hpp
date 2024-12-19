@@ -1,7 +1,11 @@
-#pragma once 
+#pragma once
 
-
-#include <string>
+#include "BitcoinExchange.hpp"
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <iomanip>
+#include <stdexcept>
 #include <map>
 
 class BitcoinExchange {
