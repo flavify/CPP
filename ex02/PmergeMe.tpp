@@ -68,16 +68,12 @@ template <typename Container>
 typename PmergeMe<Container>::PairList
 PmergeMe<Container>::makePairs() {
     PairList pairs;
+    const size_t count = _hasStraggler ? 
+					_input.size() - 1 : _input.size();
 
-    for (size_t i = 0; i + 1 < _input.size(); i += 2) {
-        pairs.push_back(PairType(_input[i], _input[i + 1]));
+    for (size_t i = 0; i + 1 < count; i += 2) {
+        pairs.push_back(PairType(_input[i], _input[i+1]));
     }
-
-    if (_input.size() % 2 != 0) {
-        _straggler = _input.back();
-    }
-
-    _hasStraggler = (_input.size() % 2 != 0);
 
     normalizePairs(pairs);
     return pairs;
