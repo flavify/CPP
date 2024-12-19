@@ -29,37 +29,39 @@ template <typename Container>
 void PmergeMe<Container>::execute() {
     // Print the unsorted sequence:
     std::cout << "Before: ";
-    for (const auto &value : _input) {
-        std::cout << value << " ";
+    for (typename Container::const_iterator it = _input.begin(); 
+																				it != _input.end(); ++it) {
+        std::cout << *it << " ";
     }
-    std::cout << std::endl;
+    std::cout << '\n';
 
-
-    // Step 1: Generate pairs
     PairList pairs = makePairs();
-    // displayPairs(pairs);
 
-    // Step 2: Extract larger and smaller elements
-    auto [largerElements, smallerElements] = extractElements(pairs);
+    std::pair<Container, Container> topLevel = extractElements(pairs);
+    // Container &largerElements = topLevel.first;
+    Container &smallerElements = topLevel.second;
 
-    // Step 3: Sort the larger elements recursively to form the main chain
-    Container sortedMainChain = sortLargerElements(pairs);
+    Container mainChain = sortLargerElements(pairs);
 
-    // Step 4: Merge smaller elements into the main chain using Jacobsthal sequence blocks
-    binaryMerge(sortedMainChain, smallerElements);
+    mergeWithSmallerElements(mainChain, smallerElements);
 
-    // Step 5: Handle the global straggler
     if (_hasStraggler) {
-        auto it = std::lower_bound(sortedMainChain.begin(), sortedMainChain.end(), _straggler);
-        sortedMainChain.insert(it, _straggler);
+        typename Container::iterator it = std::lower_bound(mainChain.begin(), mainChain.end(), _straggler);
+        mainChain.insert(it, _straggler);
     }
 
-    // Display the fully sorted sequence
     std::cout << "After: ";
-    for (const auto &value : sortedMainChain) {
-        std::cout << value << " ";
+    for (typename Container::const_iterator it = mainChain.begin(); it != mainChain.end(); ++it) {
+        std::cout << *it << " ";
     }
-    std::cout << std::endl;
+    std::cout << '\n';
+}
+
+template <typename Container>
+void PmergeMe<Container>::mergeWithSmallerElements(Container &mainChain, const Container &smallerElements) {
+    if (!smallerElements.empty()) {
+        binaryMerge(mainChain, smallerElements);
+    }
 }
 
 template <typename Container>

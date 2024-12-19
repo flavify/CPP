@@ -27,6 +27,7 @@ class PmergeMe {
 		PairList makePairs();
 		void normalizePairs(PairList &pairs);
 		Container sortLargerElements(PairList &pairs);
+		void mergeWithSmallerElements(Container &mainChain, const Container &smallerElements);
 
 		std::pair<Container, Container> extractElements(const PairList &pairs);
 		void binaryMerge(Container &mainChain, const Container &smallerElements);
