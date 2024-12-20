@@ -148,7 +148,7 @@ void PmergeMe<Container>::mergeWithSmallerElements(Container &mainChain,
 // Binary Merge
 template <typename Container>
 void PmergeMe<Container>::binaryMerge(Container &mainChain, const Container &smallerElements) {
-  auto jacobsthal = generateJacobsthalSequence(smallerElements.size());
+  auto jacobsthal = generateTSequence(smallerElements.size());
 
   if (jacobsthal.empty() || jacobsthal.back() < smallerElements.size()) {
     jacobsthal.push_back(smallerElements.size());
@@ -169,22 +169,31 @@ void PmergeMe<Container>::binaryMerge(Container &mainChain, const Container &sma
   }
 }
 
-// Generate Jacobsthal Sequence
+// Generate T Sequence (Jaochstall like seq, described in the book)
+// t_k = (2^(k+1) + (-1)^k) / 3
+// t_1=1, t_2=3, t_3=5, t_4=11, ...
 template <typename Container>
-std::vector<size_t> PmergeMe<Container>::generateJacobsthalSequence(size_t size) {
-  std::vector<size_t> jacobsthal;
-  if (size == 0) return jacobsthal;
+std::vector<size_t> PmergeMe<Container>::generateTSequence(size_t size) {
+  std::vector<size_t> tSeq;
+  if (size == 0) return tSeq;
 
-  jacobsthal.push_back(0);
-  if (size == 1) return jacobsthal;
+  // We want to cover at least up to size+1 because b_2 corresponds to index 0
+  // and b_(size+1) corresponds to smallerElements[size-1].
+  // We'll generate t_k until t_k > size+1.
+  // t_1=1 always:
+  tSeq.push_back(1);
+  size_t k = 2;
+  while (true) {
+    // Compute t_k:
+    // 2^(k+1):
+    size_t powVal = ((size_t)1 << (k+1)); 
+    size_t numerator = powVal + ((k % 2 == 0) ? 1 : -1); // add +1 if even k, -1 if odd k
+    size_t t_k = numerator / 3;
 
-  jacobsthal.push_back(1);
-  while (jacobsthal.back() < size) {
-    size_t n = jacobsthal.size();
-    size_t next = jacobsthal[n - 1] + 2 * jacobsthal[n - 2];
-    if (next >= size) break;
-    jacobsthal.push_back(next);
+    if (t_k > size + 1) break;
+    tSeq.push_back(t_k);
+    k++;
   }
 
-  return jacobsthal;
+  return tSeq;
 }
