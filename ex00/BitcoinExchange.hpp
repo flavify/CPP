@@ -10,8 +10,13 @@
 
 class BitcoinExchange {
 	public:
-  	explicit BitcoinExchange(const std::string &dbFilename);
-  	void processInputFile(const std::string &inputFilename) const;
+		BitcoinExchange() = default;
+  	BitcoinExchange(const std::string &dbFilename);
+  	BitcoinExchange(const BitcoinExchange &other) = default;
+		BitcoinExchange &operator=(const BitcoinExchange &other) = default;
+		~BitcoinExchange() = default;
+
+		void processInputFile(const std::string &inputFilename) const;
 
 	private:
   	std::map<std::string, double> exchangeRates;
