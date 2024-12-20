@@ -26,8 +26,7 @@ PmergeMe<Container>::PmergeMe(int argc, char **argv) {
     _straggler = _input.back();
   }
 }
-
-template <typename Container>
+template<typename Container>
 void PmergeMe<Container>::execute() {
   std::cout << "Before: ";
   for (const auto &value : _input) {
@@ -36,8 +35,26 @@ void PmergeMe<Container>::execute() {
   std::cout << '\n';
 
   auto pairs = makePairs();
-  auto mainChain = sortLargerElements(pairs);
+  auto [largerElements, smallerElements] = extractElements(pairs);
 
+  // Sort the larger elements recursively
+  Container mainChain = sortLargerElements(pairs);
+
+  // Now we must integrate the top-level smallerElements (if any)
+  if (!smallerElements.empty()) {
+    // Insert b_1
+    ValueType b1 = smallerElements[0];
+    auto it = std::lower_bound(mainChain.begin(), mainChain.end(), b1);
+    mainChain.insert(it, b1);
+
+    // Insert the rest of the b-elements using insertBElements
+    if (smallerElements.size() > 1) {
+      Container remainingB(smallerElements.begin() + 1, smallerElements.end());
+      insertBElements(mainChain, remainingB);
+    }
+  }
+
+  // Insert the straggler if it exists
   if (_hasStraggler) {
     auto it = std::lower_bound(mainChain.begin(), mainChain.end(), _straggler);
     mainChain.insert(it, _straggler);
@@ -49,6 +66,7 @@ void PmergeMe<Container>::execute() {
   }
   std::cout << '\n';
 }
+
 
 // Make Pairs
 template <typename Container>
