@@ -11,8 +11,16 @@ void BitcoinExchange::processInputFile(const std::string &inputFilename) const {
   }
 
   std::string line;
+  bool isFirstLine = true;
   while (std::getline(inputFile, line)) {
     try {
+      if (isFirstLine) {
+        isFirstLine = false;
+        if (line != "date | value") {
+          throw std::runtime_error("Error: first line must be 'date | value'.");
+        }
+        continue;
+      }
       processLine(line);
     } catch (const std::exception &e) {
       std::cerr << e.what() << std::endl;
@@ -46,6 +54,17 @@ void BitcoinExchange::processLine(const std::string &line) const {
     throw std::runtime_error("Error: bad input => " + line);
   }
 
+  std::tm tm = {};
+  char *parsed = strptime(date.c_str(), "%Y-%m-%d", &tm);
+  if (!parsed || *parsed != '\0') {
+    throw std::runtime_error("Error: invalid date format => " + date);
+  }
+
+  if (tm.tm_year + 2008 <= 0 ) {
+    throw std::runtime_error("Error: invalid date range => " + date);
+  }
+
+
   double value = parseValue(valueStr);
   auto rateIt = exchangeRates.lower_bound(date);
 
@@ -58,7 +77,19 @@ void BitcoinExchange::processLine(const std::string &line) const {
   }
 
   double result = value * rateIt->second;
-  std::cout << date << " => " << value << " = " << std::fixed << std::setprecision(2) << result << std::endl;
+  
+  std::ostringstream oss;
+  oss << std::fixed << std::setprecision(10) << result;
+
+  auto resultStr = oss.str();
+  resultStr.erase(resultStr.find_last_not_of('0') + 1);
+
+  if (resultStr.back() == '.') {
+    resultStr.pop_back();
+  }
+
+
+  std::cout << date << " => " << value << " = " << resultStr << std::endl;
 }
 
 double BitcoinExchange::parseValue(const std::string &valueStr) const {

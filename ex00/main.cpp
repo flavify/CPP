@@ -7,7 +7,7 @@ int main(int argc, char **argv) {
   }
 
   try {
-    BitcoinExchange btc("bitcoin_database.csv"); // Replace with your database filename
+    BitcoinExchange btc("data.csv"); // Replace with your database filename
     btc.processInputFile(argv[1]);
   } catch (const std::exception &e) {
     std::cerr << e.what() << std::endl;
