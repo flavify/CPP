@@ -27,7 +27,6 @@ PmergeMe<Container>::PmergeMe(int argc, char **argv) {
   }
 }
 
-// Execute
 template <typename Container>
 void PmergeMe<Container>::execute() {
   std::cout << "Before: ";
@@ -37,10 +36,7 @@ void PmergeMe<Container>::execute() {
   std::cout << '\n';
 
   auto pairs = makePairs();
-  auto [largerElements, smallerElements] = extractElements(pairs);
   auto mainChain = sortLargerElements(pairs);
-
-  mergeWithSmallerElements(mainChain, smallerElements);
 
   if (_hasStraggler) {
     auto it = std::lower_bound(mainChain.begin(), mainChain.end(), _straggler);
@@ -96,20 +92,28 @@ auto PmergeMe<Container>::extractElements(const PairList &pairs)
 // Sort Larger Elements
 template <typename Container>
 Container PmergeMe<Container>::sortLargerElements(PairList &pairs) {
+  // Base case
   if (pairs.size() <= 1) {
     Container sorted;
     for (const auto &[first, _] : pairs) {
       sorted.push_back(first);
     }
+    if (pairs.size() == 1) {
+      // Insert b1 immediately
+      ValueType b1 = pairs[0].second;
+      auto it = std::lower_bound(sorted.begin(), sorted.end(), b1);
+      sorted.insert(it, b1);
+    }
     return sorted;
   }
 
+  // Recursive case
   Container largerElements;
   for (const auto &[first, _] : pairs) {
     largerElements.push_back(first);
   }
 
-  bool hasLocalStraggler = largerElements.size() % 2 != 0;
+  bool hasLocalStraggler = (largerElements.size() % 2 != 0);
   ValueType localStraggler{};
   if (hasLocalStraggler) {
     localStraggler = largerElements.back();
@@ -125,75 +129,90 @@ Container PmergeMe<Container>::sortLargerElements(PairList &pairs) {
   }
 
   auto [levelLargerElems, levelSmallerElems] = extractElements(nextLevelPairs);
-  auto sortedChain = sortLargerElements(nextLevelPairs);
+  Container sortedChain = sortLargerElements(nextLevelPairs);
 
   if (hasLocalStraggler) {
     auto it = std::lower_bound(sortedChain.begin(), sortedChain.end(), localStraggler);
     sortedChain.insert(it, localStraggler);
   }
 
-  mergeWithSmallerElements(sortedChain, levelSmallerElems);
+  // Insert b_1 from this recursion level, then the rest
+  if (!levelSmallerElems.empty()) {
+    ValueType b1 = levelSmallerElems[0];
+    auto it = std::lower_bound(sortedChain.begin(), sortedChain.end(), b1);
+    sortedChain.insert(it, b1);
+
+    Container remainingB(levelSmallerElems.begin() + 1, levelSmallerElems.end());
+    insertBElements(sortedChain, remainingB);
+  }
+
   return sortedChain;
 }
 
-// Merge with Smaller Elements
-template <typename Container>
-void PmergeMe<Container>::mergeWithSmallerElements(Container &mainChain,
-                                                   const Container &smallerElements) {
-  if (!smallerElements.empty()) {
-    binaryInsert(mainChain, smallerElements);
-  }
-}
 
-// Binary insertion using T sequence
-template <typename Container>
-void PmergeMe<Container>::binaryInsert(Container &mainChain, const Container &smallerElements) {
-  // smallerElements: [b2, b3, b4, b5, ...] => smallerElements[0] = b2
-  // According to FJ algorithm:
-  // Blocks between t_k and t_{k+1}:
-  // Insert block [t_k+1 ... t_{k+1}] in reverse order of b_i
-  auto tSeq = generateTSequence(smallerElements.size());
-  
-  // If no tSeq, means no insertions needed
-  if (tSeq.empty()) {
-    return;
-  }
+// // Merge with Smaller Elements
+// template <typename Container>
+// void PmergeMe<Container>::mergeWithSmallerElements(Container &mainChain,
+//                                                    const Container &smallerElements) {
+//   if (!smallerElements.empty()) {
+//     binaryInsert(mainChain, smallerElements);
+//   }
+// }
 
-  size_t prev_t = 1; // We consider t_0 = 1 for convenience
+
+template <typename Container>
+void PmergeMe<Container>::insertBElements(Container &mainChain, const Container &bElems) {
+  if (bElems.empty()) return;
+
+  auto tSeq = generateTSequence(bElems.size());
+  if (tSeq.empty()) return;
+
+  size_t prev_t = 1;
   for (size_t i = 0; i < tSeq.size(); ++i) {
     size_t current_t = tSeq[i];
-    // Block is from prev_t+1 to current_t
-    // Insert in reverse order
+    // The block is [prev_t+1 ... current_t], insert in reverse order
+    // Collect these b_i into a temporary block
+    Container block;
     for (size_t idx = current_t; idx > prev_t; idx--) {
-      // idx corresponds to b_idx
-      // b2 = smallerElements[0] => general formula: b_i maps to smallerElements[i-2]
       if (idx >= 2) {
         size_t bIndex = idx - 2;
-        if (bIndex < smallerElements.size()) {
-          const ValueType &val = smallerElements[bIndex];
-          auto it = std::lower_bound(mainChain.begin(), mainChain.end(), val);
-          mainChain.insert(it, val);
+        if (bIndex < bElems.size()) {
+          block.push_back(bElems[bIndex]);
         }
       }
     }
+
+    if (!block.empty()) {
+      binaryInsert(mainChain, block);
+    }
+
     prev_t = current_t;
   }
 
-  // If there are still elements in smallerElements not covered by the last t_k:
-  // Insert them as well, following the pattern
-  // But by construction, t_k should cover all elements up to some point
+  // If any remain beyond last_t:
   size_t last_t = tSeq.back();
-  // If last_t < size+1, we might still have elements: b_(last_t+1), b_(last_t+2), ...
-  for (size_t idx = smallerElements.size() + 1; idx > last_t; idx--) {
-    // Insert any leftover
-    if (idx >= 2 && (idx - 2) < smallerElements.size()) {
-      size_t bIndex = idx - 2;
-      const ValueType &val = smallerElements[bIndex];
-      auto it = std::lower_bound(mainChain.begin(), mainChain.end(), val);
-      mainChain.insert(it, val);
+  Container leftover;
+  for (size_t idx = bElems.size() + 1; idx > last_t; idx--) {
+    if (idx >= 2 && (idx - 2) < bElems.size()) {
+      leftover.push_back(bElems[idx - 2]);
     }
   }
+
+  if (!leftover.empty()) {
+    binaryInsert(mainChain, leftover);
+  }
 }
+
+template <typename Container>
+void PmergeMe<Container>::binaryInsert(Container &mainChain, const Container &block) {
+  // Insert elements of block into mainChain using binary search for each element
+  // block is already in reverse order of insertion (as required)
+  for (const auto &val : block) {
+    auto it = std::lower_bound(mainChain.begin(), mainChain.end(), val);
+    mainChain.insert(it, val);
+  }
+}
+
 
 // Generate T Sequence (Jaochstall like seq, described in the book)
 // t_k = (2^(k+1) + (-1)^k) / 3

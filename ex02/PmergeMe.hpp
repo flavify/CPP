@@ -27,10 +27,12 @@ class PmergeMe {
 		PairList makePairs();
 		void normalizePairs(PairList &pairs);
 		Container sortLargerElements(PairList &pairs);
-		void mergeWithSmallerElements(Container &mainChain, const Container &smallerElements);
+		// void mergeWithSmallerElements(Container &mainChain, const Container &smallerElements);
 
 		std::pair<Container, Container> extractElements(const PairList &pairs);
-		void binaryInsert(Container &mainChain, const Container &smallerElements);
+		void insertBElements(Container &mainChain, const Container &bElems);
+		void binaryInsert(Container &mainChain, const Container &block);
+
 
 		std::vector<size_t> generateTSequence(size_t size);
 };
