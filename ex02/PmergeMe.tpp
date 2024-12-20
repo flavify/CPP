@@ -145,26 +145,52 @@ void PmergeMe<Container>::mergeWithSmallerElements(Container &mainChain,
   }
 }
 
-// Binary Merge
+// Binary Merge using T sequence
 template <typename Container>
 void PmergeMe<Container>::binaryMerge(Container &mainChain, const Container &smallerElements) {
-  auto jacobsthal = generateTSequence(smallerElements.size());
-
-  if (jacobsthal.empty() || jacobsthal.back() < smallerElements.size()) {
-    jacobsthal.push_back(smallerElements.size());
+  // smallerElements: [b2, b3, b4, b5, ...] => smallerElements[0] = b2
+  // According to FJ algorithm:
+  // Blocks between t_k and t_{k+1}:
+  // Insert block [t_k+1 ... t_{k+1}] in reverse order of b_i
+  auto tSeq = generateTSequence(smallerElements.size());
+  
+  // If no tSeq, means no insertions needed
+  if (tSeq.empty()) {
+    return;
   }
 
-  for (size_t idx = 1; idx < jacobsthal.size(); ++idx) {
-    size_t start = jacobsthal[idx - 1];
-    size_t end = jacobsthal[idx];
-
-    for (size_t i = end; i > start; --i) {
-      auto elemIndex = i - 1;
-      if (elemIndex < smallerElements.size()) {
-        auto it = std::lower_bound(mainChain.begin(), mainChain.end(),
-                                   smallerElements[elemIndex]);
-        mainChain.insert(it, smallerElements[elemIndex]);
+  size_t prev_t = 1; // We consider t_0 = 1 for convenience
+  for (size_t i = 0; i < tSeq.size(); ++i) {
+    size_t current_t = tSeq[i];
+    // Block is from prev_t+1 to current_t
+    // Insert in reverse order
+    for (size_t idx = current_t; idx > prev_t; idx--) {
+      // idx corresponds to b_idx
+      // b2 = smallerElements[0] => general formula: b_i maps to smallerElements[i-2]
+      if (idx >= 2) {
+        size_t bIndex = idx - 2;
+        if (bIndex < smallerElements.size()) {
+          const ValueType &val = smallerElements[bIndex];
+          auto it = std::lower_bound(mainChain.begin(), mainChain.end(), val);
+          mainChain.insert(it, val);
+        }
       }
+    }
+    prev_t = current_t;
+  }
+
+  // If there are still elements in smallerElements not covered by the last t_k:
+  // Insert them as well, following the pattern
+  // But by construction, t_k should cover all elements up to some point
+  size_t last_t = tSeq.back();
+  // If last_t < size+1, we might still have elements: b_(last_t+1), b_(last_t+2), ...
+  for (size_t idx = smallerElements.size() + 1; idx > last_t; idx--) {
+    // Insert any leftover
+    if (idx >= 2 && (idx - 2) < smallerElements.size()) {
+      size_t bIndex = idx - 2;
+      const ValueType &val = smallerElements[bIndex];
+      auto it = std::lower_bound(mainChain.begin(), mainChain.end(), val);
+      mainChain.insert(it, val);
     }
   }
 }
@@ -186,7 +212,7 @@ std::vector<size_t> PmergeMe<Container>::generateTSequence(size_t size) {
   while (true) {
     // Compute t_k:
     // 2^(k+1):
-    size_t powVal = ((size_t)1 << (k+1)); 
+    size_t powVal = ((size_t)1 << (k+1));
     size_t numerator = powVal + ((k % 2 == 0) ? 1 : -1); // add +1 if even k, -1 if odd k
     size_t t_k = numerator / 3;
 
