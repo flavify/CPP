@@ -26,6 +26,7 @@ PmergeMe<Container>::PmergeMe(int argc, char **argv) {
     _straggler = _input.back();
   }
 }
+
 template<typename Container>
 void PmergeMe<Container>::execute() {
   std::cout << "Before: ";
@@ -50,7 +51,7 @@ void PmergeMe<Container>::execute() {
     // Insert the rest of the b-elements using insertBElements
     if (smallerElements.size() > 1) {
       Container remainingB(smallerElements.begin() + 1, smallerElements.end());
-      insertBElements(mainChain, remainingB);
+      insertBElements(mainChain, remainingB, pairs);
     }
   }
 
@@ -116,12 +117,6 @@ Container PmergeMe<Container>::sortLargerElements(PairList &pairs) {
     for (const auto &[first, _] : pairs) {
       sorted.push_back(first);
     }
-    if (pairs.size() == 1) {
-      // Insert b1 immediately
-      ValueType b1 = pairs[0].second;
-      auto it = std::lower_bound(sorted.begin(), sorted.end(), b1);
-      sorted.insert(it, b1);
-    }
     return sorted;
   }
 
@@ -141,7 +136,7 @@ Container PmergeMe<Container>::sortLargerElements(PairList &pairs) {
   PairList nextLevelPairs;
   for (size_t i = 0; i + 1 < largerElements.size(); i += 2) {
     if (largerElements[i] < largerElements[i + 1]) {
-      std::swap(largerElements[i], largerElements[i + 1]);
+      std::swap(largerElements[i], largerElements[i + 1]); // use normalize pairs
     }
     nextLevelPairs.emplace_back(largerElements[i], largerElements[i + 1]);
   }
@@ -161,25 +156,14 @@ Container PmergeMe<Container>::sortLargerElements(PairList &pairs) {
     sortedChain.insert(it, b1);
 
     Container remainingB(levelSmallerElems.begin() + 1, levelSmallerElems.end());
-    insertBElements(sortedChain, remainingB);
+    insertBElements(sortedChain, remainingB, pairs);
   }
 
   return sortedChain;
 }
 
-
-// // Merge with Smaller Elements
-// template <typename Container>
-// void PmergeMe<Container>::mergeWithSmallerElements(Container &mainChain,
-//                                                    const Container &smallerElements) {
-//   if (!smallerElements.empty()) {
-//     binaryInsert(mainChain, smallerElements);
-//   }
-// }
-
-
 template <typename Container>
-void PmergeMe<Container>::insertBElements(Container &mainChain, const Container &bElems) {
+void PmergeMe<Container>::insertBElements(Container &mainChain, const Container &bElems, const PairList &pairs) {
   if (bElems.empty()) return;
 
   auto tSeq = generateTSequence(bElems.size());
@@ -201,7 +185,15 @@ void PmergeMe<Container>::insertBElements(Container &mainChain, const Container 
     }
 
     if (!block.empty()) {
-      binaryInsert(mainChain, block);
+      // Find the pair where the second value matches the current value in block
+      auto it = std::find_if(pairs.begin(), pairs.end(), [&block](const auto &pair) {
+        return pair.second == block.front(); // Match the second value
+      });
+
+      if (it != pairs.end()) {
+        const auto &highValue = it->first; // Take the first value (high) from the found pair
+        binaryInsert(mainChain, block, highValue);
+      }
     }
 
     prev_t = current_t;
@@ -217,17 +209,37 @@ void PmergeMe<Container>::insertBElements(Container &mainChain, const Container 
   }
 
   if (!leftover.empty()) {
-    binaryInsert(mainChain, leftover);
+    // Find the pair where the second value matches the current value in leftovers
+    auto it = std::find_if(pairs.begin(), pairs.end(), [&leftover](const auto &pair) {
+      return pair.second == leftover.front();
+    });
+
+    if (it != pairs.end()) {
+      const auto &highValue = it->first; // Take the first value (high) from the found pair
+      binaryInsert(mainChain, leftover, highValue);
+    }
   }
 }
 
 template <typename Container>
-void PmergeMe<Container>::binaryInsert(Container &mainChain, const Container &block) {
+void PmergeMe<Container>::binaryInsert(Container &mainChain,const Container &block,  const typename Container::value_type &highValue) {
   // Insert elements of block into mainChain using binary search for each element
   // block is already in reverse order of insertion (as required)
+
   for (const auto &val : block) {
-    auto it = std::lower_bound(mainChain.begin(), mainChain.end(), val);
-    mainChain.insert(it, val);
+    auto low = mainChain.begin();
+    auto high = std::upper_bound(mainChain.begin(), mainChain.end(), highValue);
+
+    while (low < high)
+    {
+      auto mid = low + distance(low, high) / 2;
+      if(*mid < val) {
+        low = mid + 1;
+      } else {
+        high = mid;
+      }
+    }
+    mainChain.insert(low, val);
   }
 }
 
