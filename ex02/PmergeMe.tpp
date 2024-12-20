@@ -141,13 +141,13 @@ template <typename Container>
 void PmergeMe<Container>::mergeWithSmallerElements(Container &mainChain,
                                                    const Container &smallerElements) {
   if (!smallerElements.empty()) {
-    binaryMerge(mainChain, smallerElements);
+    binaryInsert(mainChain, smallerElements);
   }
 }
 
-// Binary Merge using T sequence
+// Binary insertion using T sequence
 template <typename Container>
-void PmergeMe<Container>::binaryMerge(Container &mainChain, const Container &smallerElements) {
+void PmergeMe<Container>::binaryInsert(Container &mainChain, const Container &smallerElements) {
   // smallerElements: [b2, b3, b4, b5, ...] => smallerElements[0] = b2
   // According to FJ algorithm:
   // Blocks between t_k and t_{k+1}:

@@ -30,7 +30,7 @@ class PmergeMe {
 		void mergeWithSmallerElements(Container &mainChain, const Container &smallerElements);
 
 		std::pair<Container, Container> extractElements(const PairList &pairs);
-		void binaryMerge(Container &mainChain, const Container &smallerElements);
+		void binaryInsert(Container &mainChain, const Container &smallerElements);
 
 		std::vector<size_t> generateTSequence(size_t size);
 };
