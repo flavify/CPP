@@ -41,21 +41,6 @@ void PmergeMe<Container>::execute() {
   // Sort the larger elements recursively
   Container mainChain = sortLargerElements(pairs);
 
-  // Now we must integrate the top-level smallerElements (if any)
-  // if (!smallerElements.empty()) {
-  //   // Insert b_1
-  //   ValueType b1 = smallerElements[0];
-  //   auto it = std::lower_bound(mainChain.begin(), mainChain.end(), b1);
-  //   mainChain.insert(it, b1);
-
-  //   // Insert the rest of the b-elements using insertBElements
-  //   // if (smallerElements.size() > 1) {
-  //   //   Container remainingB(smallerElements.begin() + 1, smallerElements.end());
-  //   //   insertBElements(mainChain, remainingB, pairs);
-  //   // }
-  // }
-
-  // Insert the straggler if it exists
   if (_hasStraggler) {
     binaryInsert(mainChain, _straggler, *(mainChain.end() - 1));
   }
@@ -138,7 +123,7 @@ Container PmergeMe<Container>::sortLargerElements(PairList &pairs) {
   PairList nextLevelPairs;
   for (size_t i = 0; i + 1 < largerElements.size(); i += 2) {
     if (largerElements[i] < largerElements[i + 1]) {
-      std::swap(largerElements[i], largerElements[i + 1]); // use normalize pairs
+      std::swap(largerElements[i], largerElements[i + 1]);
     }
     nextLevelPairs.emplace_back(largerElements[i], largerElements[i + 1]);
   }
@@ -187,8 +172,7 @@ void PmergeMe<Container>::insertBElements(Container &mainChain, const PairList &
 
     prev_t = current_t;
   }
-
-  // If any remain beyond last_t:
+  
   size_t last_t = tSeq.back();
   PairList leftover;
   for (size_t idx = pairs.size() + 1; idx > last_t; idx--) {
@@ -198,20 +182,14 @@ void PmergeMe<Container>::insertBElements(Container &mainChain, const PairList &
   }
 
   if (!leftover.empty()) {
-    // Find the pair where the second value matches the current value in leftovers
-    // auto it = std::find_if(pairs.begin(), pairs.end(), [&leftover](const auto &pair) {
-    //   return pair.second == leftover.front();
-    // });
     for (const auto &pair : leftover)
       binaryInsert(mainChain, pair.second, pair.first);
   }
 }
 
 template <typename Container>
-void PmergeMe<Container>::binaryInsert(Container &mainChain, const typename Container::value_type &lowValue,  const typename Container::value_type &highValue) {
-  // Insert elements of block into mainChain using binary search for each element
-  // block is already in reverse order of insertion (as required)
-
+void PmergeMe<Container>::binaryInsert(Container &mainChain, 
+        const typename Container::value_type &lowValue,  const typename Container::value_type &highValue) {
   auto low = mainChain.begin();
   auto high = std::upper_bound(mainChain.begin(), mainChain.end(), highValue);
 
@@ -236,17 +214,11 @@ std::vector<size_t> PmergeMe<Container>::generateTSequence(size_t size) {
   std::vector<size_t> tSeq;
   if (size == 0) return tSeq;
 
-  // We want to cover at least up to size+1 because b_2 corresponds to index 0
-  // and b_(size+1) corresponds to smallerElements[size-1].
-  // We'll generate t_k until t_k > size+1.
-  // t_1=1 always:
   tSeq.push_back(1);
   size_t k = 2;
   while (true) {
-    // Compute t_k:
-    // 2^(k+1):
     size_t powVal = ((size_t)1 << (k+1));
-    size_t numerator = powVal + ((k % 2 == 0) ? 1 : -1); // add +1 if even k, -1 if odd k
+    size_t numerator = powVal + ((k % 2 == 0) ? 1 : -1);
     size_t t_k = numerator / 3;
 
     if (t_k > size + 1) break;

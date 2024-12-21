@@ -15,7 +15,11 @@ class PmergeMe {
 		using PairType = std::pair<ValueType, ValueType>;
 		using PairList = std::vector<PairType>;
 
+		PmergeMe() = default;
 		PmergeMe(int argc, char **argv);
+		PmergeMe(const PmergeMe &other) = default;
+		PmergeMe &operator=(const PmergeMe &other) = default;
+		~PmergeMe() = default;
 
 		void execute();
 
