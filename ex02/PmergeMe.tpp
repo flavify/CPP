@@ -42,18 +42,18 @@ void PmergeMe<Container>::execute() {
   Container mainChain = sortLargerElements(pairs);
 
   // Now we must integrate the top-level smallerElements (if any)
-  if (!smallerElements.empty()) {
-    // Insert b_1
-    ValueType b1 = smallerElements[0];
-    auto it = std::lower_bound(mainChain.begin(), mainChain.end(), b1);
-    mainChain.insert(it, b1);
+  // if (!smallerElements.empty()) {
+  //   // Insert b_1
+  //   ValueType b1 = smallerElements[0];
+  //   auto it = std::lower_bound(mainChain.begin(), mainChain.end(), b1);
+  //   mainChain.insert(it, b1);
 
-    // Insert the rest of the b-elements using insertBElements
-    // if (smallerElements.size() > 1) {
-    //   Container remainingB(smallerElements.begin() + 1, smallerElements.end());
-    //   insertBElements(mainChain, remainingB, pairs);
-    // }
-  }
+  //   // Insert the rest of the b-elements using insertBElements
+  //   // if (smallerElements.size() > 1) {
+  //   //   Container remainingB(smallerElements.begin() + 1, smallerElements.end());
+  //   //   insertBElements(mainChain, remainingB, pairs);
+  //   // }
+  // }
 
   // Insert the straggler if it exists
   if (_hasStraggler) {
