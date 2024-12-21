@@ -29,8 +29,8 @@ class PmergeMe {
 		Container sortLargerElements(PairList &pairs);
 
 		std::pair<Container, Container> extractElements(const PairList &pairs);
-		void insertBElements(Container &mainChain, const Container &bElems, const PairList &pairs);
-		void binaryInsert(Container &mainChain, const Container &block,  const typename Container::value_type &highValue);
+		void insertBElements(Container &mainChain, const PairList &pairs);
+		void binaryInsert(Container &mainChain, const typename Container::value_type &lowValue,  const typename Container::value_type &highValue);
 
 
 		std::vector<size_t> generateTSequence(size_t size);
