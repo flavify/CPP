@@ -57,8 +57,7 @@ void PmergeMe<Container>::execute() {
 
   // Insert the straggler if it exists
   if (_hasStraggler) {
-    auto it = std::lower_bound(mainChain.begin(), mainChain.end(), _straggler);
-    mainChain.insert(it, _straggler);
+    binaryInsert(mainChain, _straggler, *(mainChain.end() - 1));
   }
 
   std::cout << "After: ";
@@ -148,8 +147,7 @@ Container PmergeMe<Container>::sortLargerElements(PairList &pairs) {
   Container sortedChain = sortLargerElements(nextLevelPairs);
 
   if (hasLocalStraggler) {
-    auto it = std::lower_bound(sortedChain.begin(), sortedChain.end(), localStraggler);
-    sortedChain.insert(it, localStraggler);
+    binaryInsert(sortedChain, localStraggler, *(sortedChain.end() - 1));
   }
 
   // Insert b_1 from this recursion level, then the rest
